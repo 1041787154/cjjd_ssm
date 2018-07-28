@@ -1,0 +1,311 @@
+<html>
+<head>
+    <title>人员管理</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=8;IE=9;" />
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+ 	<script src="/scripts/boot.js" type="text/javascript"></script>
+    <script src="/scripts/validate.js" type="text/javascript"></script>
+    <style type="text/css">
+	    html,html body {
+	        font-family:"Microsoft Yahei";
+	        font-size:13px;
+	        padding:0;
+	        margin:0;
+	        width:100%;
+	        height:100%;
+	    }
+	    h2 {
+	        font-family: "Trebuchet MS",Arial,sans-serif;
+	    }
+	    p {
+	        line-height:22px;
+	    }
+	    .error{
+	    	text-align: left;
+	    	color: rgb(247, 17, 0);
+	    	font-size: 13px;
+	    }
+	    #errorWindow_text{margin-bottom:10px;font-size:18px;color:#000;}
+	    #btns,#errorWindow_text{text-align:center;}
+	    .mini-icon{min-height:14px;}
+    </style>
+</head>
+<body>
+	<!-- ***********************************工具栏 ***********************************-->
+	<div class="mini-toolbar" style="border-bottom:none;height:40px;">
+		<a class="mini-button" iconCls="icon-collapse" plain="true" onclick="back()" tooltip="">人员管理</a>    
+		<div style="float:right">
+			<a class="mini-button" iconCls="icon-add" onclick="add()">增加</a>
+			<span class="separator"></span>
+			<input  id="comb_status" class="mini-combobox" style="width:150px;" emptyText="全部" showNullItem="true" nullItemText="全部" 
+				data="[{id:1, text:'正常'}, {id:2, text:'禁用'}, {id:0, text:'删除'}]" 
+				onvaluechanged="onstatusChanged"/>
+			<span class="separator"></span>
+			<input class="mini-textbox" id="searchs" emptyText="人员姓名" />      
+			<a class="mini-button" plain="true" onclick="search">查询</a>
+		</div>
+	</div>
+	<!-- ***********************************数据显示*********************************** -->
+	<div class="mini-fit" >
+	    <div id="datagrid" class="mini-datagrid" style="width:100%;height:100%;" url="/org/staff/list" 
+	    	idField="id" allowResize="false" multiSelect="true" pageSize="15">
+		    <div property="columns">
+		        <div width="30" allowResize="false" type="indexcolumn" ></div>
+		        <div field="staff_name" width="100" headerAlign="center" align="center" >姓名</div>
+		        <div field="depart_name" width="80" headerAlign="center" align="center" >科室</div>
+		        <div field="duty_name" width="80" headerAlign="center" align="center" >职务</div>
+                <div field="status" width="60" headerAlign="center" align="center" renderer="onStatusRenderer">状态</div>
+		        <div field="remark" width="auto" headerAlign="center" align="center" >备注</div>	
+		        <div field="action" width="100" headerAlign="center" align="center" renderer="onActionRenderer">操作</div>
+		    </div>
+		</div>
+	</div>
+	<!-- ***********************************提示窗口*********************************** -->
+	<div id="errorWindow" class="mini-window mini-panel-primary" title="" style="width:400px;" showModal="true" allowDrag="true">
+		<div id="errorWindow_text"></div>
+		<div id="btns">
+			<a class="mini-button" href="#" id="yes">确定</a> 
+	        <a class="mini-button" href="#" id="no">取消</a>
+		</div>
+	</div>
+	<!-- ***********************************更新和添加窗口 ***********************************-->
+    <div id="editWindow" class="mini-window mini-panel-primary" title="人员管理" style="width:500px;" 
+   		showModal="true" allowResize="true" allowDrag="true">
+        <div class="form" id="editform">
+        	<input class="mini-hidden" name="id"/>
+            <table class="form-table" border="0" cellpadding="1" cellspacing="2" style="margin:0 auto;">
+                <tr>
+                    <td class="form-label" style="width:100px;text-align: right">姓名：</td>
+                    <td style="width:150px">
+                        <input name="staff_name" class="mini-textbox" onvalidation="onNullValidation"/>
+                    </td>
+                    <td id="name_error" class="errorText error"></td>
+                </tr>
+                <tr>
+                    <td class="form-label" style="width:100px;text-align: right">备注：</td>
+                    <td style="width:150px">
+                        <input name="remark" class="mini-textbox"/>
+                    </td>
+                    <td id="remark_error" class="errorText error"></td>
+                </tr>
+                <tr>
+                    <td class="form-label" style="width:100px;text-align: right">状态：</td>
+                    <td style="width:150px">
+                        <div id="status" name="status" class="mini-radiobuttonlist" repeatLayout="table" 
+                        	textField="text" valueField="id" value="1" 
+    						data="[{id: 1, text: '正常'}, {id: 2, text: '禁用'}]">
+						</div>
+                    </td>
+                    <td id="status_error" class="errorText error"></td>
+                </tr>
+                
+                 <tr>
+	                <td style="text-align:center;padding-top:5px;padding-right:20px;" colspan="6">
+	                    <a id="btn" class="mini-button" href="javascript:updateRow()">确定</a> 
+	                    <a class="mini-button" href="javascript:cancelRow()">取消</a>
+	                </td>                
+	            </tr>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
+<script type="text/javascript">
+    mini.parse();
+    var editWindow = mini.get("editWindow");
+    var errorWindow = mini.get("errorWindow");
+    var grid = mini.get("datagrid");
+    var btnYes = document.getElementById("yes");
+	var btnNo = document.getElementById("no");
+	var datep = mini.get("birth");
+	
+    grid.load();
+    
+    function onActionRenderer(e) {
+        var record = e.record;
+        var s = '<a class="Edit_Button" href="javascript:edit()">[修改]</a>'+
+        	' <a class="Edit_Button" href="javascript:remove()">[删除]</a>';
+        return s;
+    }
+    
+    function onstatusChanged(e) {
+		var id = mini.get("comb_status").getValue();
+		grid.load({status: id});
+		
+    }
+    //查询数据
+    function search() {
+        var value = mini.get("#searchs").getValue(); 
+        grid.load({value:value});
+    }
+    //返回
+    function back() {
+        grid.load();
+    }
+    //添加数据
+    function add(){
+    	clearText();
+    	mini.get("#btn").setText("确定");
+    	var form = new mini.Form("#editform");
+    	form.reset();
+    	editWindow.show();
+    }
+    //更新数据
+    function edit() {
+    	clearText();
+    	mini.get("#btn").setText("更新");
+    	var row = grid.getSelected();
+        if (row) {
+        	var id = row.id;
+            editWindow.show();
+            var form = new mini.Form("#editform");
+            form.clear();
+            form.loading();
+            $.ajax({
+                url: "/org/staff/get/"+id, 
+                type: "post",
+                success: function (text) {             	
+                    form.unmask();
+                    var o = mini.decode(text);
+                    form.setData(o);     
+                },
+                error: function () {
+                	popWin("表单加载错误");
+                	cancelWin(); 
+                    form.unmask();
+                }
+            });
+
+        }else{
+        	popWin("请选中一条记录");
+        	cancelWin();     	
+        }
+    }
+    //提交更新和添加的数据
+    function updateRow() {
+    	var btnText = mini.get("#btn").getText();
+    	if(btnText == "确定"){
+    		url="/org/staff/save";
+    	}else{
+    		url="/org/staff/update";
+    	}
+        var form = new mini.Form("editform");
+        form.validate();
+        if (form.isValid() == false) return;
+        var data = form.getData();
+        
+        if(data.status==""){
+        	data.status=1;
+        }
+        var json = mini.encode(data);
+        grid.loading("保存中，请稍后......");
+        $.ajax({
+            url: url,
+            type:"post",
+            data: data,
+            success: function (text) {
+                grid.reload();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert(jqXHR.responseText);
+            }
+        });
+        editWindow.hide();
+    }
+    //删除数据
+    function remove() { 
+        var rows = grid.getSelecteds();
+        var flag =1;
+        if (rows.length > 0) {
+        	popWin("确定删除选中记录？");
+        	//点击确认时删除
+           	btnYes.onclick = function(){
+                var ids = [];
+                for (var i = 0, l = rows.length; i < l; i++) {
+                    var r = rows[i];
+                    if(r.status==0){
+                    	flag=0;
+                    	break;
+                    }else{
+                    	ids.push(r.id);
+                    }
+                    
+                }
+                if(flag==1){
+                	var id = ids.join(',');
+                    grid.loading("操作中，请稍后......");
+                    $.ajax({
+                       	  url: "/org/staff/delete/"+id,
+                          type:"post",
+                          success: function (text) {
+                          	search();
+                          },
+                          error: function () {
+                          }
+                      });
+                }else{
+                	alert("管理员用户不能删除");
+                }
+                errorWindow.hide();	
+              
+           	}
+        	//点击取消时不删除
+           	btnNo.onclick = function(){
+           		errorWindow.hide();	
+           	}
+        } else {
+        	popWin("请选中一条记录");
+        	cancelWin();
+        }
+    }
+    //关闭更新和添加窗口
+    function cancelRow(){
+   	   grid.reload();
+       editWindow.hide();
+    }
+    //弹出窗口
+    function popWin(text){    	
+    	var error = document.getElementById("errorWindow_text"); 	
+    	error.innerHTML = text;
+    	errorWindow.show();	
+    }
+    //关闭错误提示窗口
+    function cancelWin(){
+    	btnYes.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    	btnNo.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    }
+    //清除验证提示
+    function clearText(){
+    	var errorTds = document.getElementsByClassName("error");
+    	for(var i = 0;i<errorTds.length;i++){
+    		errorTds[i].innerHTML = "";
+    	}
+    }
+   
+    function onDrawDate(e) {
+        var date = e.date;
+        var d = new Date();
+        if (date.getTime() > d.getTime()) {
+            e.allowSelect = false;
+        }
+    }
+    
+    function onGenderRenderer(e) {
+        if (e.value == 1) return "男";
+        else return "女";
+    }
+   
+    function onStatusRenderer(e) {
+        if (e.value == 1) return "正常";
+        if (e.value == 2) return "禁用";
+        if (e.value == 3) return "离职";
+        if (e.value == 4) return "退休";
+        if (e.value == 0) return "删除";
+    }
+    
+</script>

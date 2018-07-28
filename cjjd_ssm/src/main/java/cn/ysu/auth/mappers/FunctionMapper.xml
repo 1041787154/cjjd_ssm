@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">   
+<mapper namespace="cn.ysu.auth.dao.FunctionDao">
+  
+    <resultMap id="FunctionMapper" type="FunctionModel">   
+        <id property="id" column="id" />
+        <result property="functionName" column="function_name" />
+        <result property="moduleId" column="module_id" />
+        <result property="functionOrder" column="function_order" />
+        <result property="remark" column="remark" />
+        <result property="createAt" column="create_at" />
+        <result property="updateAt" column="update_at" />
+        <result property="byzd1" column="byzd_1" />
+        <result property="byzd2" column="byzd_2" />
+        <result property="byzd3" column="byzd_3" />
+        <result property="moduleName" column="module_name" />
+    </resultMap>
+    
+    <resultMap id="ComboMapper" type="Combo">   
+        <id property="id" column="id" />   
+        <result property="text" column="module_name" />
+    </resultMap>
+       
+    <select id="selectById" resultMap="FunctionMapper">   
+        select * from tbl_auth_function where id = #{id}
+    </select> 
+    
+    <select id="selectFunctionList" resultMap="FunctionMapper" parameterType="java.util.Map">   
+        select f.*, m.module_name from tbl_auth_function f
+        inner join tbl_auth_module m on f.module_id = m.id
+        <where>
+			<if test="moduleId != null">
+	        	and f.module_id = #{moduleId}
+	        </if>
+	        <if test="functionName != null">
+	        	and f.function_name like "%"#{functionName}"%"
+	        </if>
+        </where>
+       
+    </select>
+    
+    <select id="selectFunctionCombo" resultMap="ComboMapper">
+    	select id, function_name from tbl_auth_function order by function_order
+    </select>
+    
+    <insert id="insert" parameterType="FunctionModel" useGeneratedKeys="true" keyProperty="id">
+    	insert into tbl_auth_function (function_name, module_id, function_order, remark) 
+    	values (#{functionName}, #{moduleId}, #{functionOrder}, #{remark})
+    </insert>
+    
+    <delete id="deleteById">
+    	delete from tbl_auth_function where id = #{id}
+    </delete>
+    
+    <update id="update" parameterType="FunctionModel">
+    	update tbl_auth_function set function_name = #{functionName}, module_id = #{moduleId},
+    	function_order = #{functionOrder}, remark = #{remark} 
+    	where id = #{id}
+    </update>
+</mapper>

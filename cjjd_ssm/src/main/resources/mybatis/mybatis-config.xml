@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+        <!-- 日志开启 -->
+        <setting name="logImpl" value="LOG4J"/>
+        <!-- 二级缓存开启 -->
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <setting name="aggressiveLazyLoading" value="true"/>
+    </settings>
+    
+    <typeAliases>
+    	<!-- main model -->
+    	<typeAlias alias="LoginUserModel" type="cn.ysu.main.model.LoginUserModel"/>
+    	<typeAlias alias="MenuPrivilegeModel" type="cn.ysu.main.model.MenuPrivilegeModel"/>
+    	<!-- org model -->
+        <typeAlias alias="DepartmentModel" type="cn.ysu.org.model.DepartmentModel"/>
+        <typeAlias alias="DutyModel" type="cn.ysu.org.model.DutyModel"/>
+        <typeAlias alias="StaffModel" type="cn.ysu.org.model.StaffModel"/>
+        <typeAlias alias="StaffDutyModel" type="cn.ysu.org.model.StaffDutyModel"/>
+    	<!-- auth model -->
+    	<typeAlias alias="AuthorityModel" type="cn.ysu.auth.model.AuthorityModel"/>
+    	<typeAlias alias="FunctionModel" type="cn.ysu.auth.model.FunctionModel"/>
+    	<typeAlias alias="ModuleModel" type="cn.ysu.auth.model.ModuleModel"/>
+    	<typeAlias alias="ParameterModel" type="cn.ysu.auth.model.ParameterModel"/>
+    	<typeAlias alias="PrivilegeModel" type="cn.ysu.auth.model.PrivilegeModel"/>
+    	<typeAlias alias="RoleModel" type="cn.ysu.auth.model.RoleModel"/>
+        <typeAlias alias="UserModel" type="cn.ysu.auth.model.UserModel"/>
+        <!-- metadata model -->
+        <typeAlias alias="CheckItemModel" type="cn.ysu.metadata.model.CheckItemModel"/>
+        <typeAlias alias="DeviceModel" type="cn.ysu.metadata.model.DeviceModel"/>
+        <typeAlias alias="LoggingTeamModel" type="cn.ysu.metadata.model.LoggingTeamModel"/>
+        <!-- supervision model -->
+        <typeAlias alias="SupervisionTaskModel" type="cn.ysu.supervision.model.SupervisionTaskModel"/>
+        <typeAlias alias="SupervisionCheckModel" type="cn.ysu.supervision.model.SupervisionCheckModel"/>
+        <typeAlias alias="SupervisionDataModel" type="cn.ysu.supervision.model.SupervisionDataModel"/>
+        <!-- system model -->
+        <typeAlias alias="DataOperationModel" type="cn.ysu.system.model.DataOperationModel"/>
+        <typeAlias alias="LogModel" type="cn.ysu.system.model.LogModel"/>
+        <!-- todo model -->
+        <typeAlias alias="TodoModel" type="cn.ysu.todo.model.TodoModel"/>
+        <!-- file model -->
+        <typeAlias alias="UploadFileModel" type="cn.ysu.file.model.UploadFileModel"/>
+    	<!-- common structure -->
+    	<typeAlias alias="Combo" type="cn.ysu.common.structure.Combo"/>
+    </typeAliases>
+    
+    <plugins>
+    	<!-- com.github.pagehelper为PageHelper类所在包名 -->  
+	    <plugin interceptor="com.github.pagehelper.PageHelper">  
+	        <!-- 方言 -->  
+	        <property name="dialect" value="mysql"/>  
+	        <!-- 该参数默认为false -->  
+	        <!-- 设置为true时，使用RowBounds分页会进行count查询 -->  
+	        <property name="rowBoundsWithCount" value="true"/>  
+	    </plugin> 
+    </plugins>
+</configuration>

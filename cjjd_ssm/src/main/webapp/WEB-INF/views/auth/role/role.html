@@ -1,0 +1,389 @@
+<html>
+<head>
+    <title>角色管理</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=8;IE=9;" />
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+ 	<script src="/scripts/boot.js" type="text/javascript"></script>
+    <script src="/scripts/validate.js" type="text/javascript"></script>
+    <style type="text/css">
+	    html,html body {
+	        font-family:"Microsoft Yahei";
+	        font-size:13px;
+	        padding:0;
+	        margin:0;
+	        width:100%;
+	        height:100%;
+	    }
+	    h2 {
+	        font-family: "Trebuchet MS",Arial,sans-serif;
+	    }
+	    p {
+	        line-height:22px;
+	    }
+	    .error{
+	    	text-align: left;
+	    	color: rgb(247, 17, 0);
+	    	font-size: 13px;
+	    }
+	    #errorWindow_text{margin-bottom:10px;font-size:18px;color:#000;}
+	    #btns,#errorWindow_text{text-align:center;}
+	    #outline1 .mini-splitter-border{
+	    border:none;
+	    }
+	    #outline1 .mini-grid-border{
+	    border:none;
+	    }
+	    #outline2 .mini-grid-border{
+	    border:none;
+	    }
+    </style>
+</head>
+<body>
+<div class="mini-splitter" style="width:100%;height:100%;" vertical="true" allowResize="false" handlerSize="0">
+	<!-- ***********************************标题栏 ***********************************-->
+	<div class="mini-toolbar" size="40">
+		<a class="mini-button" iconCls="icon-collapse" plain="true" tooltip="">角色管理</a>
+		<div style="float:right"> 
+			<a class="mini-button" iconCls="icon-add" onclick="add()">新增</a>
+		</div>
+	</div>
+	<!-- ***********************************工具栏 ***********************************-->
+	<div id="outline1" class="mini-splitter" style="width:100%;height:100%;">
+		<!-- ***********************************角色显示*********************************** -->
+		<div size="475">
+			<div class="mini-fit">
+			   	<div id="datagrid" class="mini-datagrid" style="width:100%;height:100%;" url="/auth/role/list" 
+			   		idField="id" allowResize="false" onrowclick="onSelection" >
+		    		<div property="columns">
+			    		<div width="30" allowResize="false" type="indexcolumn" ></div>
+			        	<div width="90" field="role_name" headerAlign="center" align="center">角色</div>
+		               	<div width="60" field="status" headerAlign="center" align="center"  renderer="onStatusRenderer">状态</div>
+			        	<div width="auto" field="remark"  headerAlign="center" align="left">备注</div> 
+	             		<div width="100" name ="action" headerAlign="center" align="center" renderer="onActionRenderer" >操作</div>
+		   	 		</div>
+				</div>
+			</div>
+		</div>
+		<!-- ***********************************功能权限显示*********************************** -->
+		<div>
+			<div id="outline2" class="mini-fit" >
+			    <div id="treegrid" class="mini-treegrid" style="width:100%;height:100%;" url="/auth/privilege/getTreeTable" 
+			    	idField="id" allowResize="false" multiSelect="true" treeColumn="name" parentField="pid" 
+			    	resultAsTree="false" expandOnLoad="true" showTreeIcon="true" allowSelect="false" allowCellSelect="false"
+			    	enableHotTrack="false" ondrawcell="ondrawcell"  checkRecursive="false" showTreeLines="true" allowCellWrap="true">
+				    <div property="columns">
+				        <div width="50" allowResize="false" type="indexcolumn" ></div>
+			        	<div name="name" field="name" width="200">模块/功能</div>
+				        <div field="functions" width="auto">权限</div>  
+				    </div>
+				</div>
+			</div>
+		<!-- ***********************************提示窗口*********************************** -->
+		<div id="errorWindow" class="mini-window mini-panel-primary" title="" style="width:400px;" showModal="true" allowDrag="true">
+			<div id="errorWindow_text"></div>
+			<div id="btns">
+				<a class="mini-button" href="#" id="yes">确定</a> 
+		        <a class="mini-button" href="#" id="no">取消</a>
+			</div>
+		</div>
+  	<div id="editWindow" class="mini-window mini-panel-primary" title="角色管理" style="width:650px;" 
+   		showModal="true" allowResize="true" allowDrag="true">
+        <div class="form" id="editform">
+        	<input class="mini-hidden" name="id"/>
+            <table class="form-table" border="0" cellpadding="1" cellspacing="2" style="margin:0 auto;">
+             	<tr>
+                    <td class="form-label" style="width:100px;text-align: right">角色名称：</td>
+                    <td style="width:150px">
+                        <input id="role_name" name="role_name" class="mini-textbox"  style='width: 150px;' onvalidation="onNullValidation" onvaluechanged="topinyin" />
+                    </td>
+                    <td id="staff_id_error" class="errorText error"></td>
+                </tr>
+                <tr>
+                    <td class="form-label" style="width:100px;text-align: right">角色状态：</td>
+                    <td style="width:150px">
+                        <input name="status" class="mini-combobox"   onvalidation="onNullValidation"data="[{id:1, text:'可用'}, {id:2, text:'禁用'}]"/>
+                    </td>
+                    <td id="status_error" class="errorText error"></td>
+                </tr>
+                <tr>
+			        <td style="text-align:right;">备注：</td>
+			        <td colspan="2" >
+			            <input name="remark" class="mini-textarea" style="width:150px;height:60px;"/>
+			        </td>        
+			        <td></td>
+			    </tr>
+                 <tr>
+	                <td style="text-align:center;padding-top:5px;padding-right:20px;" colspan="6">
+	                    <a id="btn" class="mini-button" href="javascript:updateRow()">确定</a> 
+	                    <a class="mini-button" href="javascript:cancelRow()">取消</a>
+	                </td>                
+	            </tr>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
+<script type="text/javascript">
+    mini.parse();
+    var editWindow = mini.get("editWindow");
+    var errorWindow = mini.get("errorWindow");
+    var grid = mini.get("datagrid");
+    var btnYes = document.getElementById("yes");
+	var btnNo = document.getElementById("no");
+	var showAllSelect = true;
+	var tree = mini.get("treegrid");
+    grid.load();
+    
+    function onActionRenderer(e) {
+        var grid = e.sender;
+        var record = e.record;
+        var id = record.id;
+        var rowIndex = e.rowIndex;
+        var s =  '<a class="Edit_Button" href="javascript:edit(\'' + id + '\')">[修改]</a>'
+                + ' <a class="Delete_Button" href="javascript:remove(\'' + id + '\')">[删除]</a>';
+        return s;
+    }
+    
+    //添加数据
+    function add(){
+    	clearText();
+    	mini.get("#btn").setText("确定");
+    	var form = new mini.Form("#editform");
+        form.clear();
+    	editWindow.show();
+    }
+    
+    //更新数据
+    function edit(id) {
+    	clearText();
+    	mini.get("#btn").setText("更新");
+        if (id>0) {
+            editWindow.show();
+            var form = new mini.Form("#editform");
+            form.clear();
+            form.loading();
+            $.ajax({
+                url: "/auth/role/get/"+id, 
+                type: "post",
+                success: function (text) {             	
+                    form.unmask();
+                    var o = mini.decode(text);
+                    form.setData(o);     
+                },
+                error: function () {
+                	popWin("表单加载错误");
+                	cancelWin(); 
+                    form.unmask();
+                }
+            });
+
+        }else{
+        	popWin("请选中一条记录");
+        	cancelWin();     	
+        }
+    }
+    
+    //提交更新和添加的数据
+    function updateRow() {
+    	var btnText = mini.get("#btn").getText();
+    	if(btnText == "确定"){
+    		url="/auth/role/save";
+    	}else{
+    		url="/auth/role/update";
+    	}
+        var form = new mini.Form("editform");
+        form.validate();
+        if (form.isValid() == false) return;
+        
+        var data = form.getData();
+        var json = mini.encode(data);
+        
+        grid.loading("保存中，请稍后......");
+        $.ajax({
+            url: url,
+            type:"post",
+            data: data,
+            success: function (text) {
+                grid.reload();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert(jqXHR.responseText);
+                alert("保存失败")
+            }
+        });
+        editWindow.hide();
+    }
+    
+    //删除数据
+    function remove(id) { 
+        if (id>0) {
+        	popWin("确定删除选中记录？");
+        	//点击确认时删除
+           	btnYes.onclick = function(){
+                grid.loading("操作中，请稍后......");
+                $.ajax({
+                    url: "/auth/role/delete/"+id,
+                    type:"post",
+                    success: function (text) {
+                    	 grid.reload();;
+                    },
+                    error: function () {
+                    }
+                });
+                errorWindow.hide();	
+           	}
+        	//点击取消时不删除
+           	btnNo.onclick = function(){
+           		errorWindow.hide();	
+           	}
+        } else {
+        	popWin("请选中一条记录");
+        	cancelWin();
+        }
+    }
+    
+    function onSelection(e){
+    	var grid = e.sender;
+    	var record = grid.getSelected();
+    	if(record){
+    		tree.setUrl("/auth/privilege/getTreeTable/"+record.id);
+    		tree.reload();
+    	}
+    }
+    
+    function save(){
+    	var data= tree.getData();
+    	var json =mini.encode(data);
+    	alert(json);
+    }
+
+	function ondrawcell(e) {
+        var tree = e.sender,
+            record = e.record,            
+            column = e.column,
+            field = e.field,
+            id = record[tree.getIdField()],
+            funs = record.functions;
+        	funid = record.id;
+        function createCheckboxs(funs) {
+            if (!funs) return "";
+            var html = "";
+    
+            for (var i = 0, l = funs.length; i < l; i++) {
+                var fn = funs[i];
+                
+                var clickFn = 'checkFunc(\'' + fn.roleid + '\',\'' + fn.id + '\' ,\'' + funid + '\',this.checked)';
+                var checked = fn.checked ? 'checked' : '';
+                html += '<label class="function-item"><input onclick="' + clickFn + '" ' + checked + ' type="checkbox"  hideFocus/>' + fn.name + '</label>';
+           
+            }
+            return html;
+        }
+		
+        if (field == 'functions') {
+            e.cellHtml = createCheckboxs(funs);
+        }
+    }
+	
+	function checkFunc(roleid, fnid, funid,checked) {
+   	 	var rid=roleid.replace(/[^0-9]/ig,"");
+   		if(rid>0){
+	 	  	var pid=fnid.replace(/[^0-9]/ig,"");
+			if(checked){
+				$.ajax({
+		           url: "/auth/authority/save",
+		           type:"post",
+		           data: {roleid: rid, fnid: pid, category:1},
+		           success: function (text) {
+		           	tree.reload();
+		           	return "save";
+		           },
+		           error: function (jqXHR, textStatus, errorThrown) {
+		               alert(jqXHR.responseText);
+		               
+		           }
+		       });
+			}else{
+				$.ajax({
+		           url: "/auth/authority/delete",
+		           type:"post",
+		           data: {roleid: rid, fnid: pid, category:1},
+		           success: function (text) {
+			           tree.reload();
+			           return "delete";
+		           },
+		           error: function (jqXHR, textStatus, errorThrown) {
+		               alert(jqXHR.responseText);
+		           }
+		       });
+			}
+		}else{
+			popWin("未选择用户");
+	       	cancelWin();  
+	       	tree.reload();
+	   	}
+	}
+	 
+    function checkAllFunc(id, btn) {
+    	var record = tree.getRecord(id);
+	    if (!record) return;
+	    var funs = record.functions;
+	    if (!funs) return;
+
+        var checked = record.checkAll !== false;
+        alert(checked);
+        for (var i = 0, l = funs.length; i < l; i++) {
+ 	            var o = funs[i];
+ 	            o.checked = checked;
+ 	        	var flag =checkFunc(o.roleid , o.id , checked);
+ 	        }
+        record.checkAll = !checked;
+        tree.updateRow(record);
+        
+    }
+    
+    function onStatusRenderer(e) {
+        var type = e.record.status;
+        return type==1?'可用':'禁用';
+    }
+    
+	//关闭更新和添加窗口
+    function cancelRow(){
+   	   grid.reload();
+       editWindow.hide();
+    }
+	
+    //弹出窗口
+    function popWin(text){    	
+    	var error = document.getElementById("errorWindow_text"); 	
+    	error.innerHTML = text;
+    	errorWindow.show();	
+    }
+    
+    //关闭错误提示窗口
+    function cancelWin(){
+    	btnYes.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    	btnNo.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    }
+    
+    //清除验证提示
+    function clearText(){
+    	var errorTds = document.getElementsByClassName("error");
+    	for(var i = 0;i<errorTds.length;i++){
+    		errorTds[i].innerHTML = "";
+    	}
+    }
+    
+    function onDrawDate(e) {
+        var date = e.date;
+        var d = new Date();
+        if (date.getTime() > d.getTime()) {
+            e.allowSelect = false;
+        }
+    }
+</script>

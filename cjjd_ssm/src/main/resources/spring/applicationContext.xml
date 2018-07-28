@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+       	http://www.springframework.org/schema/context
+       	http://www.springframework.org/schema/context/spring-context.xsd
+       	http://www.springframework.org/schema/tx
+       	http://www.springframework.org/schema/tx/spring-tx.xsd
+       	http://www.springframework.org/schema/aop
+       	http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!-- 将多个配置文件读取到容器中，交给Spring管理 -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:config/jdbc.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 扫描类包，将标注Spring注解的类自动转化Bean，同时完成Bean的注入 -->
+	<context:component-scan base-package="cn.ysu.*.service" />
+	
+	<!--master 配置数据源 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName">
+			<value>${jdbc.driverClassName}</value>
+		</property>
+		<property name="url">
+			<value>${jdbc.url}</value>
+		</property>
+		<property name="username">
+			<value>${jdbc.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.password}</value>
+		</property>
+
+		<!-- 通过别名的方式配置扩展插件，常用的插件有：监控统计用的filter:stat 日志用的filter:log4j 防御sql注入的filter:wall -->
+		<property name="filters" value="stat,log4j" />
+		<!-- 最大并发连接数 -->
+		<property name="maxActive" value="30" />
+		<!-- 初始化连接数量 -->
+		<property name="initialSize" value="5" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />
+		<!-- 最小空闲连接数 -->
+		<property name="minIdle" value="5" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="false" />
+		<property name="maxOpenPreparedStatements" value="100" />
+		<!-- 打开removeAbandoned功能(连接泄漏监测，怀疑存在泄漏之后再打开) -->
+		<property name="removeAbandoned" value="true" />
+		<!-- 1800秒，也就是30分钟 -->
+		<property name="removeAbandonedTimeout" value="1800" />
+		<!-- 关闭abanded连接时输出错误日志 -->
+		<property name="logAbandoned" value="true" />
+	</bean>
+	
+	<!-- 配置mybatis的sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<!-- 自动扫描mappers.xml文件 -->
+		<property name="mapperLocations" value="classpath:cn/ysu/*/mappers/*.xml"/>
+		<!-- mybatis配置文件 -->
+		<property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+	</bean>
+	
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.ysu.*.dao"/>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+	</bean>
+
+	<!-- 配置Jdbc模板 -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- 通知 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+       <tx:attributes>
+           <!-- 传播行为 -->
+           <tx:method name="insert*" propagation="REQUIRED" />
+           <tx:method name="delete*" propagation="REQUIRED" />
+           <tx:method name="update*" propagation="REQUIRED" />
+           <tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+           
+           <tx:method name="create*" propagation="REQUIRED" />
+           <tx:method name="remove*" propagation="REQUIRED" />
+           <tx:method name="change*" propagation="REQUIRED" />
+           <tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+           
+           <tx:method name="add*" propagation="REQUIRED" />
+           <tx:method name="del*" propagation="REQUIRED" />
+           <tx:method name="set*" propagation="REQUIRED" />
+           <tx:method name="save*" propagation="REQUIRED" />
+           <tx:method name="list*" propagation="SUPPORTS" read-only="true" />
+           <tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+           <tx:method name="load*" propagation="SUPPORTS" read-only="true" />
+           
+           <tx:method name="*" propagation="REQUIRED" read-only="true"/>
+       </tx:attributes>
+    </tx:advice>
+    <!-- 切面 -->
+    <aop:config>
+       <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.ysu.*.service.*.*(..))" />
+    </aop:config>
+
+</beans>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">   
+<mapper namespace="cn.ysu.main.dao.MenuPrivilegeDao">
+  
+	<!-- private Integer moduleId;
+	private String moduleName;
+	private Integer functionId;
+	private String functionName;
+	private Integer privilegeId;
+	private String privilegeName;
+	private String url;
+	private Integer category;
+	private String remark; -->
+	
+    <resultMap id="MenuPrivilegeMapper" type="MenuPrivilegeModel">   
+        <!-- privilege info -->
+        <id property="privilegeId" column="id" />   
+        <result property="privilegeName" column="privilege_name" />
+        <result property="url" column="url" />
+        <result property="category" column="category" />
+        <result property="remark" column="remark" />
+        <!-- function info -->
+        <result property="functionId" column="function_id" />
+        <result property="functionName" column="function_name" />
+        <!-- module info -->
+        <result property="moduleId" column="module_id" />
+        <result property="moduleName" column="module_name" />
+    </resultMap>   
+       
+    <select id="selectAdminMenuPrivilege" resultMap="MenuPrivilegeMapper">   
+        select m.module_name, f.module_id, f.function_name, p.* from tbl_auth_privilege p
+		inner join tbl_auth_function f on p.function_id = f.id
+		inner join tbl_auth_module m on f.module_id = m.id
+		where p.is_menu = 1 order by m.module_order, f.function_order, p.id
+    </select>
+    
+    <select id="selectUserMenuPrivilege" resultMap="MenuPrivilegeMapper">   
+        select m.module_name, f.module_id, f.function_name, p.* from tbl_auth_privilege p
+		inner join tbl_auth_function f on p.function_id = f.id
+		inner join tbl_auth_module m on f.module_id = m.id
+		inner join tbl_auth_authority a on p.id = a.prigilege_id
+		where p.is_menu = 1 and ((a.related_id = #{roleId} and a.category = 1) or (a.related_id = #{userId} and a.category = 2))
+		order by m.module_order, f.function_order, p.id
+    </select>
+    
+</mapper>

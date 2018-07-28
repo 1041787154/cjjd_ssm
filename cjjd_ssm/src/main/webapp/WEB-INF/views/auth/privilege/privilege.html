@@ -1,0 +1,365 @@
+<html>
+<head>
+    <title>系统权限管理</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=8;IE=9;" />
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+ 	<script src="/scripts/boot.js" type="text/javascript"></script>
+    <script src="/scripts/validate.js" type="text/javascript"></script>
+    <style type="text/css">
+	    html, html body {
+	        font-family:"Microsoft Yahei";
+	        font-size:13px;
+	        padding:0;
+	        margin:0;
+	        width:100%;
+	        height:100%;
+	    }
+	    h2 {
+	        font-family: "Trebuchet MS",Arial,sans-serif;
+	    }
+	    p {
+	        line-height:22px;
+	    }
+	    .error{
+	    	text-align: left;
+	    	color: rgb(247, 17, 0);
+	    	font-size: 13px;
+	    }
+	    #errorWindow_text{margin-bottom:10px;font-size:18px;color:#000;}
+	    #btns,#errorWindow_text{text-align:center;}
+	    #outline1 .mini-splitter-border{
+	    border:none;
+	    }
+	    #outline2 .mini-grid-border{
+	    border:none;
+	    }
+    </style>
+</head>
+<body>
+<div class="mini-splitter" style="width:100%;height:100%;" vertical="true" allowResize="false" handlerSize="0">
+	<!-- ***********************************标题栏 ***********************************-->
+	<div class="mini-toolbar" size="40">
+		<a class="mini-button" iconCls="icon-collapse" plain="true" tooltip="" onclick="onregrid">系统权限管理</a>    
+		<div style="float:right">
+			<a class="mini-button" iconCls="icon-add" onclick="add()">增加</a>
+			<a class="mini-button" iconCls="icon-edit" onclick="edit()">修改</a>
+			<a class="mini-button" iconCls="icon-remove" onclick="remove()">删除</a>
+			<span class="separator"></span>
+			<input class="mini-textbox" id="searchs" emptyText="系统权限名称"/>      
+			<a class="mini-button" plain="true" onclick="search">查询</a>
+		</div>
+	</div>
+	<!-- ***********************************工具栏 ***********************************-->
+	<div id="outline1" class="mini-splitter" style="width:100%;height:100%;">
+		<div size="250">
+			<div class="mini-toolbar" style="padding:2px;height:31px;border-top:0;border-left:0;border-right:0;">                
+	            <span style="padding-left:5px;height:26px;line-height:26px;font-size:14px;font-family:'Microsoft Yahei';">功能模块</span>
+	    	</div>
+	        <div class="mini-fit">
+	            <ul id="tree_privilege" class="mini-tree" url="/auth/privilege/listTree" style="width:100%;"
+	                showTreeIcon="true" textField="name" idField="id" parentField="pid" resultAsTree="false" onnodeclick="onfunChanged" >        
+	            </ul>
+	        </div>
+		</div>
+		<div style="min-width:730px;">
+		<!-- ***********************************数据显示*********************************** -->
+			<div id="outline2" class="mini-fit" >
+			    <div id="datagrid" class="mini-datagrid" style="width:100%;height:100%;" url="/auth/privilege/list" 
+			    	idField="id" allowResize="false" multiSelect="true" pageSize="15">
+				    <div property="columns">
+				        <div width="30" allowResize="false" type="indexcolumn" ></div>
+				        <div type="checkcolumn" ></div>    
+				        <div field="function_name" width="100" headerAlign="center" align="center">模块功能</div>
+		             	<div field="privilege_name" width="120" headerAlign="center" align="center" >权限名称</div>
+		             	<div field="url" width="240" headerAlign="center" align="left" >访问路由/Key</div>
+				        <div field="category" width="80" headerAlign="center" align="center" renderer="onCategoryRenderer">权限类型</div>
+				        <div field="is_menu" width="70" headerAlign="center" align="center"renderer="onIsMenusRenderer" >是否菜单</div>
+				        <div field="rely_on" width="80" headerAlign="center" align="center" renderer="onActionRenderer">参数配置</div>
+				    	<div field="remark" width="auto" headerAlign="center" align="left">备注</div>
+				    </div>
+				</div>
+			</div>
+			<!-- ***********************************提示窗口*********************************** -->
+			<div id="errorWindow" class="mini-window mini-panel-primary" title="提示" style="width:400px;" showModal="true" allowDrag="true">
+				<div id="errorWindow_text"></div>
+				<div id="btns">
+					<a class="mini-button" href="#" id="yes">确定</a> 
+			        <a class="mini-button" href="#" id="no">取消</a>
+				</div>
+			</div>
+			<!-- ***********************************添加窗口 ***********************************-->
+			<div id="editWindow" class="mini-window mini-panel-primary" title="权限管理" style="width:650px;" 
+				showModal="true" allowResize="true" allowDrag="true">
+			    <div class="form" id="editform">
+			    	<input class="mini-hidden" name="id"/>
+			        <table class="form-table" border="0" cellpadding="1" cellspacing="2" style="margin:0 auto;">
+			            <tr>
+			                <td class="form-label" style="width:100px;text-align: right">权限名称：</td>
+			                <td style="width:150px">
+			                    <input id="privilege_name" name="privilege_name" class="mini-textbox" onvalidation="onNullValidation"/>
+			                 </td>
+			                <td id="privilege_name_error" class="errorText error"></td>
+			            </tr>
+			            <tr>
+			                <td class="form-label" style="width:120px;text-align: right">访问路由/Key：</td>
+			                <td style="width:150px">
+			                    <input  id="url" name="url" class="mini-textbox" />
+			                </td>
+			                <td id="url_error" class="errorText error"></td>
+			            </tr>
+			            <tr>
+			                <td class="form-label" style="width:100px;text-align: right">模块功能：</td>
+			                <td style="width:150px">
+			                    <input  id="function_id" name="function_id" class="mini-combobox"  url="/auth/function/listfuncionName" onvalidation="onNullValidation"  valueField="id"/>
+			                </td>
+			                <td id="function_id_error" class="errorText error"></td>
+			            </tr>
+			            <tr>
+			                <td class="form-label" style="width:100px;text-align: right">权限类型：</td>
+			                <td style="width:150px">
+			                    <input  id="category" name="category" class="mini-combobox"  onvalidation="onNullValidation"  valueField="id"  data="[{id:1, text:'验证权限'}, {id:2, text:'公共接口'}, {id:3, text:'功能控制'}]"/>
+			                </td>
+			                <td id="type_error" class="errorText error"></td>
+			            </tr>
+			            <tr>
+			                <td class="form-label" style="width:100px;text-align: right">是否菜单：</td>
+			                <td style="width:150px">
+			                    <input  id="is_menu" name="is_menu" class="mini-combobox"  onvalidation="onNullValidation"  data="[{id:1, text:'是'}, {id:2, text:'否'}]"/>
+			                </td>
+			                <td id="is_menu_error" class="errorText error"></td>
+			            </tr>
+						<tr>
+			                <td class="form-label" style="width:100px;text-align: right">备注：</td>
+			                <td style="width:150px">
+			                    <input  id="remark" name="remark" class="mini-textbox"   />
+			                </td>
+			                <td id="comment_error" class="errorText error"></td>
+			            </tr>
+			            <tr>
+			             	<td style="text-align:center;padding-top:5px;padding-right:20px;" colspan="6">
+			                 	<a id="btn" class="mini-button" href="javascript:updateRow()">确定</a> 
+			                 	<a class="mini-button" href="javascript:cancelRow()">取消</a>
+			             	</td>                
+			         	</tr>
+			        </table>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+<script type="text/javascript">
+    mini.parse();
+    var grid = mini.get("datagrid");
+    var editWindow = mini.get("editWindow");
+    var errorWindow = mini.get("errorWindow");
+    var btnYes = document.getElementById("yes");
+	var btnNo = document.getElementById("no");
+	var tree_privilege = mini.get("tree_privilege");
+	  
+    grid.load();
+    
+    function onActionRenderer(e) {
+        var record = e.record;
+        var id = record.id;
+        var relay = record.relay_on;
+        var title = record.privilege_name;
+        if(relay==""||relay==null){
+        	 var s =  '<a class="Edit_Button" href="javascript:listrelayon(\'' + id + '\',\'' + title + '\')">[无]</a>';
+        }else{
+        	 var s =  '<a class="Edit_Button" href="javascript:listrelayon(\'' + id + '\',\'' + title + '\')">[查看]</a>';
+        }
+       
+        return s;
+    }
+    
+  	//参数依赖列表
+	function listrelayon(id,title){
+		mini.open({
+            url: "/auth/parameter/to/para_list?id=" + id,
+            title: "【" + title + "】参数依赖", width: 900, height: 600,
+            ondestroy: function (action) {
+                grid.reload();
+            }
+        });
+	}
+    
+    function onCategoryRenderer(e) {
+        var category = e.record.category;
+        return category==1?'验证权限':category==2?'公共接口':'功能控制';
+    }
+    
+    function onIsMenusRenderer(e) {
+        var type = e.record.is_menu;
+        return type==1?'<b>√</b>':'×';
+    }
+    
+  	//返回
+    function onregrid(e){
+    	grid.load();
+    }
+  
+    //查询数据
+    function search() {
+        var value = mini.get("#searchs").getValue(); 
+        grid.load({value:value});
+    }
+    
+    //添加数据
+    function add(){
+    	clearText();
+    	mini.get("#btn").setText("确定");
+    	var form = new mini.Form("#editform");
+        form.clear();
+    	editWindow.show();
+    }
+    
+    //更新数据
+    function edit() {
+    	clearText();
+    	mini.get("#btn").setText("更新");
+    	var row = grid.getSelected();//得到所选择的行
+        if (row) {
+        	var id = row.id;//所选的更新数据的数据库对应的ID值
+        	editWindow.show();
+            var form = new mini.Form("#editform");
+            form.clear();
+            form.loading();
+            $.ajax({
+                url: "/auth/privilege/get/"+id, 
+                type: "post",
+                success: function (text) {             	
+                    form.unmask();
+                    var o = mini.decode(text);
+                    form.setData(o);     
+                },
+                error: function () {
+                	popWin("表单加载错误");
+                	cancelWin(); 
+                    form.unmask();
+                }
+            });
+
+        }else{
+        	popWin("请选中一条记录！");
+        	cancelWin();     	
+        }
+    }
+    
+    //提交更新和添加的数据
+    function updateRow() {
+    	var btnText = mini.get("#btn").getText();
+    	var form = new mini.Form("editform");
+    	if(btnText == "确定"){
+    		
+    		url="/auth/privilege/save";
+    	}else{
+    		
+    		url="/auth/privilege/update";
+    	}
+        
+        form.validate();
+        if (form.isValid() == false) return;
+        var data = form.getData();
+        grid.loading("保存中，请稍后......");
+        $.ajax({
+            url: url,
+            type:"post",
+            data: data,
+            success: function (text) {
+                grid.reload();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert(jqXHR.responseText);
+            }
+        });
+        editWindow.hide();
+    }
+    
+    //删除数据
+    function remove() { 
+        var rows = grid.getSelecteds();//得到所选择的行
+        if (rows.length > 0) {
+        	popWin("确定删除选中记录？");
+        	//点击确认时删除
+           	btnYes.onclick = function(){
+                var ids = [];
+                for (var i = 0, l = rows.length; i < l; i++) {
+                    var r = rows[i];
+                    ids.push(r.id);
+                }
+                var id = ids.join(',');
+                grid.loading("操作中，请稍后......");
+                $.ajax({
+                    url: "/auth/privilege/delete/"+id,
+                    type:"post",
+                    success: function (text) {
+                    	search();
+                    },
+                    error: function () {
+                    }
+                });
+                errorWindow.hide();	
+           	}
+        	//点击取消时不删除
+           	btnNo.onclick = function(){
+           		errorWindow.hide();	
+           	}
+        } else {
+        	popWin("请选中一条记录！");
+        	cancelWin();
+        }
+    }
+    
+    //关闭更新和添加窗口
+    function cancelRow(){
+   	   grid.reload();
+       editWindow.hide();
+    }
+    
+    //弹出窗口
+    function popWin(text){    	
+    	var error = document.getElementById("errorWindow_text");
+    	error.innerHTML = text;
+    	errorWindow.show();	
+    }
+    
+    //关闭错误提示窗口
+    function cancelWin(){
+    	btnYes.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    	btnNo.onclick = function(){
+    		errorWindow.hide();	
+    	}
+    }
+    
+    //清除验证提示
+    function clearText(){
+    	var errorTds = document.getElementsByClassName("error");
+    	for(var i = 0;i<errorTds.length;i++){
+    		errorTds[i].innerHTML = "";
+    	}
+    }
+  
+    function onDrawDate(e) {
+        var date = e.date;
+        var d = new Date();
+        if (date.getTime() > d.getTime()) {
+            e.allowSelect = false;
+        }
+    }
+    
+    function onfunChanged(e){
+    	
+    	var node=tree_privilege.getSelectedNode();
+    	var json = mini.encode(node);
+    	var id= node.id;
+    	var pid= node.pid;
+    	if(id!=null && pid!=null){
+    		grid.load({funid:id})
+    	}
+    }
+</script>
+</html>
